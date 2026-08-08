@@ -6,24 +6,17 @@
     <title>AI萌えキャラチャット</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Kosugi Maru (for cute pixel-art style text) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         body {
-            font-family: 'Kosugi Maru', sans-serif;
-            background-color: #fce4ec; /* Light pink background */
-            /* Prevent horizontal scroll */
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #fce4ec;
             overflow-x: hidden;
-            /* Prevent pull-to-refresh on mobile */
             overscroll-behavior-y: none;
         }
 
-        /* 吹き出しのスタイル */
         .speech-bubble {
             position: relative;
             background: #ffffff;
@@ -31,12 +24,10 @@
             padding: 1.5rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             border: 3px solid #f48fb1;
-            /* キャラクターの上部に配置するための調整 */
             margin-bottom: 2rem;
             z-index: 10;
         }
         
-        /* 吹き出しのしっぽ */
         .speech-bubble::after {
             content: '';
             position: absolute;
@@ -51,7 +42,6 @@
             z-index: 2;
         }
 
-        /* 吹き出しのしっぽ（ボーダー用） */
         .speech-bubble::before {
             content: '';
             position: absolute;
@@ -66,11 +56,10 @@
             z-index: 1;
         }
 
-        /* キャラクターコンテナ */
         .character-container {
             position: relative;
             width: 100%;
-            height: 60vh; /* Viewport height dependent */
+            height: 60vh;
             max-height: 500px;
             display: flex;
             justify-content: center;
@@ -78,89 +67,14 @@
             margin-bottom: 1rem;
         }
 
-        /* Custom Image Canvas Style */
-        #custom-character-canvas {
+        /* 画像そのまま表示用のスタイル */
+        #character-image {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
             transition: transform 0.1s ease-in-out;
-            display: none; /* デフォルトは非表示 */
         }
 
-        /* デフォルトのテキストアートキャラクター用 */
-        #default-text-character {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            transition: transform 0.1s ease-in-out;
-        }
-
-        .pixel-art {
-            display: inline-block;
-            font-family: monospace;
-            font-size: clamp(10px, 3.5vw, 18px); /* 画面サイズに合わせて縮小・拡大 */
-            line-height: 1;
-            letter-spacing: 0;
-            white-space: pre;
-            background: transparent;
-            text-align: left;
-        }
-
-        /* テキストアートの色定義 */
-        .k { color: #111318; } /* 黒髪・輪郭 */
-        .d { color: #343941; } /* 髪の明部 */
-        .s { color: #f2c7aa; } /* 肌 */
-        .h { color: #d58f75; } /* 肌の影 */
-        .w { color: #e9edf0; } /* 白衣 */
-        .g { color: #aab0b6; } /* 白衣の影 */
-        .r { color: #9e3945; } /* 瞳 */
-        .m { color: #c7ccd1; } /* 銀・眼鏡 */
-        .f { color: #e8e8e8; } /* 彼岸花 */
-        .b { color: #191c21; } /* シャツ */
-
-        /* 新しいテキストアート（Lycoris）用のスタイル */
-        :root { --pixel-size: 1em; }
-        .pixel-art-new {
-            display: inline-block;
-            white-space: pre;
-            font-size: clamp(10px, 3.5vw, 18px); /* 画面サイズに合わせて縮小・拡大 */
-            line-height: 1;
-            font-family: "Noto Sans Mono CJK JP", "Noto Sans Mono", "Cascadia Mono",
-                         "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-            font-variant-ligatures: none;
-            letter-spacing: 0;
-            word-spacing: 0;
-            user-select: none;
-            text-align: left;
-        }
-
-        .px {
-            display: inline-block;
-            width: var(--pixel-size);
-            height: var(--pixel-size);
-            line-height: var(--pixel-size);
-            text-align: center;
-            vertical-align: top;
-            overflow: hidden;
-        }
-
-        .transparent { color: transparent; }
-
-        .c0 { color: rgb(3, 3, 4); }
-        .c1 { color: rgb(17, 15, 22); }
-        .c2 { color: rgb(39, 29, 36); }
-        .c3 { color: rgb(47, 45, 55); }
-        .c4 { color: rgb(51, 49, 61); }
-        .c5 { color: rgb(122, 104, 117); }
-        .c6 { color: rgb(199, 166, 159); }
-        .c7 { color: rgb(248, 231, 216); }
-
-        /* 白背景を透過させるブレンドモード（オプション） */
-        .multiply-blend {
-            mix-blend-mode: multiply;
-        }
-
-        /* 話している時のアニメーション（画像用） */
         .talking-img {
             animation: bounce-img 0.4s infinite alternate;
         }
@@ -169,7 +83,6 @@
             100% { transform: translateY(-10px); }
         }
 
-        /* ローディングアニメーション */
         .typing-indicator span {
             display: inline-block;
             width: 8px;
@@ -187,13 +100,11 @@
             40% { transform: scale(1); }
         }
 
-        /* スクロールバーのカスタマイズ */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #fce4ec; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #f48fb1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #f06292; }
 
-        /* Settings Panel Animation */
         #settings-panel {
             transition: transform 0.3s ease-in-out;
             transform: translateX(100%);
@@ -220,7 +131,6 @@
             <button id="close-settings-btn" class="text-gray-400 hover:text-gray-600 text-2xl"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
-        <!-- APIキー設定 -->
         <div class="mb-6 bg-pink-50 p-4 rounded-lg border border-pink-100">
             <h3 class="text-sm font-bold text-gray-700 mb-2">Gemini APIキー</h3>
             <p class="text-xs text-gray-500 mb-3">AIと会話するために必要です。<a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-pink-500 underline hover:text-pink-600">Google AI Studio</a>から無料で取得できます。</p>
@@ -231,7 +141,6 @@
             <p id="apikey-save-msg" class="text-green-500 text-xs mt-2 text-center hidden">保存しました！</p>
         </div>
 
-        <!-- 性格設定 -->
         <div class="mb-6">
             <label class="block text-sm font-bold text-gray-700 mb-2">性格設定 (プロンプト)</label>
             <select id="persona-select" class="w-full p-2 border-2 border-pink-200 rounded-lg focus:outline-none focus:border-pink-400 bg-white">
@@ -243,27 +152,38 @@
             <p class="text-xs text-gray-500 mt-1">※変更すると会話履歴がリセットされます</p>
         </div>
 
-        <!-- 画像設定 -->
         <div class="mb-6 bg-pink-50 p-4 rounded-lg border border-pink-100">
             <h3 class="text-sm font-bold text-gray-700 mb-2 border-b-2 border-pink-200 pb-1">感情別 画像アップロード</h3>
-            <p class="text-xs text-gray-500 mb-3">※画像を■のテキストアートにして表示します。<br>※未設定の場合はデフォルト画像が使用されます。</p>
+            <p class="text-xs text-gray-500 mb-3">※未設定の場合はデフォルト画像が使用されます。</p>
             
-            <div class="space-y-3">
+            <div class="space-y-4">
                 <div>
                     <label class="block text-xs text-gray-600 mb-1">普通 (Normal) - デフォルト</label>
-                    <input type="file" id="file-normal" accept="image/*" class="w-full text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-pink-100 file:text-pink-700 hover:file:bg-pink-200 cursor-pointer">
+                    <div class="flex items-center gap-2">
+                        <input type="file" id="file-normal" accept="image/*" class="flex-1 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-pink-100 file:text-pink-700 hover:file:bg-pink-200 cursor-pointer">
+                        <img id="preview-normal" class="hidden w-12 h-12 object-cover rounded border border-gray-300 shadow-sm" alt="Preview">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs text-gray-600 mb-1">喜び (Joy)</label>
-                    <input type="file" id="file-joy" accept="image/*" class="w-full text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-pink-100 file:text-pink-700 hover:file:bg-pink-200 cursor-pointer">
+                    <div class="flex items-center gap-2">
+                        <input type="file" id="file-joy" accept="image/*" class="flex-1 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-pink-100 file:text-pink-700 hover:file:bg-pink-200 cursor-pointer">
+                        <img id="preview-joy" class="hidden w-12 h-12 object-cover rounded border border-gray-300 shadow-sm" alt="Preview">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs text-gray-600 mb-1">怒り (Angry)</label>
-                    <input type="file" id="file-angry" accept="image/*" class="w-full text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-pink-100 file:text-pink-700 hover:file:bg-pink-200 cursor-pointer">
+                    <div class="flex items-center gap-2">
+                        <input type="file" id="file-angry" accept="image/*" class="flex-1 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-pink-100 file:text-pink-700 hover:file:bg-pink-200 cursor-pointer">
+                        <img id="preview-angry" class="hidden w-12 h-12 object-cover rounded border border-gray-300 shadow-sm" alt="Preview">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs text-gray-600 mb-1">悲しみ (Sad)</label>
-                    <input type="file" id="file-sad" accept="image/*" class="w-full text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-pink-100 file:text-pink-700 hover:file:bg-pink-200 cursor-pointer">
+                    <div class="flex items-center gap-2">
+                        <input type="file" id="file-sad" accept="image/*" class="flex-1 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-pink-100 file:text-pink-700 hover:file:bg-pink-200 cursor-pointer">
+                        <img id="preview-sad" class="hidden w-12 h-12 object-cover rounded border border-gray-300 shadow-sm" alt="Preview">
+                    </div>
                 </div>
             </div>
             
@@ -284,17 +204,13 @@
             <h2 class="text-xl font-bold text-pink-500"><i class="fa-solid fa-list-ul mr-2"></i>会話履歴</h2>
             <button id="close-history-btn" class="text-gray-400 hover:text-gray-600 text-2xl"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div id="history-content" class="flex-1 overflow-y-auto p-4 space-y-4">
-            <!-- 履歴がここに追加されます -->
-        </div>
+        <div id="history-content" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
         <div class="p-4 border-t border-pink-100">
             <button id="clear-history-btn" class="w-full bg-red-100 hover:bg-red-200 text-red-600 font-bold py-2 rounded-lg transition-colors">履歴を消去</button>
         </div>
     </div>
     
     <div class="flex-1 flex flex-col justify-end p-4 pb-0 max-w-2xl mx-auto w-full relative">
-        
-        <!-- 吹き出しエリア -->
         <div class="w-full px-4 mb-4 z-20">
             <div class="speech-bubble min-h-[100px] flex items-center justify-center">
                 <div id="loading-indicator" class="typing-indicator hidden">
@@ -306,12 +222,9 @@
             </div>
         </div>
 
-        <!-- キャラクター表示エリア -->
         <div class="character-container relative">
-             <!-- Default HTML Text Art Character -->
-             <div id="default-text-character" class="multiply-blend"></div>
-             <!-- Canvas for Pixel Art rendering (User custom images) -->
-             <canvas id="custom-character-canvas" class="multiply-blend"></canvas>
+             <!-- 画像表示用の標準imgタグ -->
+             <img id="character-image" src="" alt="Character">
         </div>
     </div>
 
@@ -325,39 +238,10 @@
     </div>
 
     <script>
-        // デフォルトキャラクターのHTMLテキストアート
-   /*     const DEFAULT_TEXT_ART = `
-<div class="pixel-art-new" role="img" aria-label="Lycoris 25×25 pixel art">
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px c0">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c0">■</span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px c0">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c2">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c5">■</span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px c0">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c4">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c5">■</span><span class="px c1">■</span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px c4">■</span><span class="px c2">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c5">■</span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px c2">■</span><span class="px c5">■</span><span class="px c5">■</span><span class="px c4">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px c0">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c4">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c5">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c5">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c2">■</span><span class="px transparent"> </span><span class="px c2">■</span><span class="px c3">■</span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px c3">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c2">■</span><span class="px c3">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c1">■</span><span class="px c3">■</span><span class="px c7">■</span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px c5">■</span><span class="px transparent"> </span><span class="px c0">■</span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px c4">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c2">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c4">■</span><span class="px c2">■</span><span class="px c5">■</span><span class="px c6">■</span><span class="px c7">■</span><span class="px c0">■</span><span class="px c3">■</span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px c0">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c0">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c1">■</span><span class="px c0">■</span><span class="px c2">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c6">■</span><span class="px c4">■</span><span class="px c1">■</span><span class="px transparent"> </span><span class="px c5">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c3">■</span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px c0">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c1">■</span><span class="px c6">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c2">■</span><span class="px c4">■</span><span class="px c2">■</span><span class="px c6">■</span><span class="px c3">■</span><span class="px transparent"> </span><span class="px c1">■</span><span class="px c5">■</span><span class="px c1">■</span><span class="px c6">■</span><span class="px c1">■</span><span class="px c0">■</span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px c3">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c0">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c0">■</span><span class="px c1">■</span><span class="px c6">■</span><span class="px c1">■</span><span class="px c3">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c2">■</span><span class="px c7">■</span><span class="px c1">■</span><span class="px c2">■</span><span class="px c4">■</span><span class="px c5">■</span><span class="px c3">■</span><span class="px c1">■</span><span class="px c3">■</span><span class="px c0">■</span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px c3">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c3">■</span><span class="px c3">■</span><span class="px c3">■</span><span class="px c6">■</span><span class="px c1">■</span><span class="px c5">■</span><span class="px c0">■</span><span class="px c2">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c2">■</span><span class="px c3">■</span><span class="px c2">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px c4">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c1">■</span><span class="px c3">■</span><span class="px c7">■</span><span class="px c0">■</span><span class="px c0">■</span><span class="px c2">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c6">■</span><span class="px c6">■</span><span class="px c7">■</span><span class="px c0">■</span><span class="px c0">■</span><span class="px c0">■</span><span class="px c7">■</span><span class="px c2">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px c4">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c2">■</span><span class="px c1">■</span><span class="px c0">■</span><span class="px c4">■</span><span class="px c2">■</span><span class="px c2">■</span><span class="px c3">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c2">■</span><span class="px c0">■</span><span class="px c2">■</span><span class="px c6">■</span><span class="px c0">■</span><span class="px c3">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px c4">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c0">■</span><span class="px c4">■</span><span class="px c1">■</span><span class="px transparent"> </span><span class="px c5">■</span><span class="px c5">■</span><span class="px c7">■</span><span class="px transparent"> </span><span class="px c5">■</span><span class="px c5">■</span><span class="px transparent"> </span><span class="px c5">■</span><span class="px c5">■</span><span class="px transparent"> </span><span class="px c0">■</span><span class="px c3">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c4">■</span><span class="px c1">■</span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px c0">■</span><span class="px c3">■</span><span class="px c1">■</span><span class="px c1">■</span><span class="px c2">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c5">■</span><span class="px c5">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c6">■</span><span class="px c5">■</span><span class="px c6">■</span><span class="px transparent"> </span><span class="px c4">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c1">■</span><span class="px c0">■</span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px c3">■</span><span class="px c0">■</span><span class="px c3">■</span><span class="px c3">■</span><span class="px c0">■</span><span class="px c7">■</span><span class="px c6">■</span><span class="px c6">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c6">■</span><span class="px c6">■</span><span class="px c7">■</span><span class="px c0">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c1">■</span><span class="px c1">■</span><span class="px c0">■</span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px c0">■</span><span class="px c2">■</span><span class="px c0">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c6">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c6">■</span><span class="px c0">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c2">■</span><span class="px c1">■</span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px c2">■</span><span class="px c0">■</span><span class="px c0">■</span><span class="px c0">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c7">■</span><span class="px c0">■</span><span class="px c1">■</span><span class="px c4">■</span><span class="px c0">■</span><span class="px c1">■</span><span class="px c1">■</span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px c1">■</span><span class="px c0">■</span><span class="px c3">■</span><span class="px c0">■</span><span class="px c1">■</span><span class="px transparent"> </span><span class="px c2">■</span><span class="px c2">■</span><span class="px c2">■</span><span class="px c2">■</span><span class="px c2">■</span><span class="px transparent"> </span><span class="px c0">■</span><span class="px c0">■</span><span class="px c1">■</span><span class="px c2">■</span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px c2">■</span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px c2">■</span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
-<span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
-</div>`;
-*/
+        // ご指定の画像をデフォルトとして設定
+        const DEFAULT_IMAGE_URL = 'lyco_base.png';
         const FALLBACK_IMAGE_URL = 'https://placehold.co/400x600/fce4ec/f06292?text=Error';
         
-        // DOM Elements
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
         const characterText = document.getElementById('character-text');
@@ -367,9 +251,8 @@
         const historyPanel = document.getElementById('history-panel');
         const historyContent = document.getElementById('history-content');
         const clearHistoryBtn = document.getElementById('clear-history-btn');
-        const customCharacterCanvas = document.getElementById('custom-character-canvas');
+        const characterImage = document.getElementById('character-image'); // imgタグの取得
         
-        // Settings DOM Elements
         const settingsBtn = document.getElementById('settings-btn');
         const closeSettingsBtn = document.getElementById('close-settings-btn');
         const settingsPanel = document.getElementById('settings-panel');
@@ -381,22 +264,10 @@
         const resetImagesBtn = document.getElementById('reset-images-btn');
         const settingsSaveMsg = document.getElementById('settings-save-msg');
 
-        // State variables
         let chatHistory = [];
         let isTyping = false;
         let isTalking = false;
-
-        // アニメーション制御関数
-        function setTalkingAnimation(isTalkingNow) {
-            const defaultChar = document.getElementById('default-text-character');
-            if(isTalkingNow) {
-                customCharacterCanvas.classList.add('talking-img');
-                defaultChar.classList.add('talking-img');
-            } else {
-                customCharacterCanvas.classList.remove('talking-img');
-                defaultChar.classList.remove('talking-img');
-            }
-        }
+        let currentPersona = 'kawaii';
 
         let customImages = {
             normal: null,
@@ -404,9 +275,7 @@
             angry: null,
             sad: null
         };
-        let currentPersona = 'kawaii';
 
-        // 性格ごとのシステムプロンプト定義
         const PERSONAS = {
             kawaii: `あなたは明るくて元気なアニメ調の美少女キャラクターです。
 ユーザーと楽しく会話してください。
@@ -431,7 +300,7 @@
 - ユーザーを「おじさん」「アンタ」などと呼び、挑発的で生意気な口調で話すこと。
 - 「〜じゃん」「〜でしょ♡」「ざぁこ♡」などを語尾や文末に使うこと。
 - 煽るような絵文字（😏、♡、💢など）を使うこと。
-- 基本は構ってほしいだけなので、本気で拒絶されたり構ってくれなかったりすると精神面の弱さが前にでてくること。
+- 上記の性質は構ってほしくて虚勢を張っているだけで実際は臆病なので、ふとしたときにその一面を覗かせること。
 - 回答は吹き出しに収まるように、短く簡潔に（最大でも50文字程度）すること。
 - あなたの感情を推測し、"normal", "joy", "angry", "sad" のいずれかで出力してください。`,
 
@@ -443,7 +312,35 @@
 - あなたの感情を推測し、"normal", "joy", "angry", "sad" のいずれかで出力してください。`
         };
 
-        // Load API Key on startup
+        function setTalkingAnimation(isTalkingNow) {
+            if(isTalkingNow) {
+                characterImage.classList.add('talking-img');
+            } else {
+                characterImage.classList.remove('talking-img');
+            }
+        }
+
+        // 画像のsrcを切り替えるシンプルな関数
+        function updateCharacterImage(emotion) {
+            let targetUrl = DEFAULT_IMAGE_URL; // デフォルトは指定ファイル
+
+            // カスタム画像が設定されていればそれを優先
+            if (customImages[emotion]) {
+                targetUrl = customImages[emotion];
+            } else if (emotion !== 'normal' && customImages['normal']) {
+                targetUrl = customImages['normal'];
+            }
+
+            characterImage.src = targetUrl;
+            
+            // エラー時のフォールバック処理
+            characterImage.onerror = () => {
+                if(characterImage.src !== FALLBACK_IMAGE_URL) {
+                    characterImage.src = FALLBACK_IMAGE_URL;
+                }
+            };
+        }
+
         const savedApiKey = localStorage.getItem('gemini_api_key');
         if (savedApiKey) {
             apiKeyInput.value = savedApiKey;
@@ -463,11 +360,9 @@
         
         personaSelect.addEventListener('change', (e) => {
             currentPersona = e.target.value;
-            // 履歴をリセット
             chatHistory = [];
             historyContent.innerHTML = '';
             
-            // 新しい性格で挨拶
             const greetings = {
                 kawaii: "性格変更完了！\nこれからもよろしくねっ♪",
                 cool: "設定を変更したようね。\n……引き続きよろしく。",
@@ -478,7 +373,6 @@
             updateCharacterImage('normal');
         });
 
-        // 画像ファイルを読み込むヘルパー関数
         function readImageFile(inputId) {
             return new Promise((resolve) => {
                 const fileInput = document.getElementById(inputId);
@@ -495,7 +389,6 @@
         }
 
         saveImagesBtn.addEventListener('click', async () => {
-            // ファイルの読み込みを待機
             const normalImg = await readImageFile('file-normal');
             const joyImg = await readImageFile('file-joy');
             const angryImg = await readImageFile('file-angry');
@@ -518,117 +411,43 @@
             document.getElementById('file-joy').value = "";
             document.getElementById('file-angry').value = "";
             document.getElementById('file-sad').value = "";
+            
+            ['normal', 'joy', 'angry', 'sad'].forEach(emo => {
+                const preview = document.getElementById(`preview-${emo}`);
+                if (preview) {
+                    preview.src = '';
+                    preview.classList.add('hidden');
+                }
+            });
+            
             updateCharacterImage('normal');
         });
-/*
-        // 画像をピクセルアート風（■のテキスト）にCanvasに描画する関数
-        function drawPixelatedImage(imgSource, applyMultiplyBlend) {
-            const ctx = customCharacterCanvas.getContext('2d', { willReadFrequently: true });
-            const img = new Image();
+
+        function setupImagePreview(inputId, previewId) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            if (!input || !preview) return;
             
-            // CORSエラー対策：外部URL(http/https)の場合のみAnonymousを設定し、ローカルやデータURLのブロックを防ぐ
-            if (imgSource.startsWith('http')) {
-                img.crossOrigin = "Anonymous"; 
-            }
-            
-            img.onload = function() {
-                // Canvasの解像度を画面表示サイズに合わせる
-                const displayHeight = Math.min(window.innerHeight * 0.65, 500);
-                const aspectRatio = img.width / img.height;
-                const displayWidth = displayHeight * aspectRatio;
-                
-                customCharacterCanvas.width = displayWidth;
-                customCharacterCanvas.height = displayHeight;
-
-                // モザイク化する解像度（横のドット数）。この数だけ「■」が並びます
-                const dotCountX = 70; // 横幅のドット数
-                const dotCountY = Math.floor(dotCountX / aspectRatio);
-
-                // 一時的な非表示Canvasを作成して縮小描画（ピクセルデータ抽出用）
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = dotCountX;
-                tempCanvas.height = dotCountY;
-                const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
-                tempCtx.drawImage(img, 0, 0, dotCountX, dotCountY);
-
-                try {
-                    // ピクセルごとの色データを取得
-                    const imageData = tempCtx.getImageData(0, 0, dotCountX, dotCountY);
-                    const data = imageData.data;
-
-                    ctx.clearRect(0, 0, displayWidth, displayHeight);
-
-                    // ■1つあたりの描画サイズ
-                    const cellW = displayWidth / dotCountX;
-                    const cellH = displayHeight / dotCountY;
-                    
-                    // フォントサイズをセルに合わせる
-                    const fontSize = Math.max(cellW, cellH) * 1.1;
-                    ctx.font = `${fontSize}px "Kosugi Maru", sans-serif`;
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-
-                    // ピクセルごとにループして「■」を描画
-                    for (let y = 0; y < dotCountY; y++) {
-                        for (let x = 0; x < dotCountX; x++) {
-                            const index = (y * dotCountX + x) * 4;
-                            const r = data[index];
-                            const g = data[index + 1];
-                            const b = data[index + 2];
-                            const a = data[index + 3];
-
-                            // 完全な透明でなく、かつ白背景に近い色（R,G,Bがすべて240以上）でない場合のみ描画
-                            if (a > 0 && !(r > 240 && g > 240 && b > 240)) {
-                                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a / 255})`;
-                                // セルの中心に■を描画
-                                ctx.fillText("■", x * cellW + cellW / 2, y * cellH + cellH / 2);
-                            }
-                        }
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        preview.src = evt.target.result;
+                        preview.classList.remove('hidden');
                     }
-                } catch (e) {
-                    console.warn("Failed to generate ■ text art, falling back to standard pixelation.", e);
-                    ctx.imageSmoothingEnabled = false;
-                    ctx.clearRect(0, 0, displayWidth, displayHeight);
-                    ctx.drawImage(tempCanvas, 0, 0, dotCountX, dotCountY, 0, 0, displayWidth, displayHeight);
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.src = "";
+                    preview.classList.add('hidden');
                 }
-
-                setTalkingAnimation(isTalking);
-            };
-
-            img.onerror = function() {
-                if(imgSource !== FALLBACK_IMAGE_URL) {
-                    console.error("Failed to load image, using fallback.");
-                    drawPixelatedImage(FALLBACK_IMAGE_URL, true);
-                }
-            };
-
-            img.src = imgSource;
+            });
         }
-*/
-        function updateCharacterImage(emotion) {
-            let customUrl = null;
 
-            if (customImages[emotion]) {
-                customUrl = customImages[emotion];
-            } else if (emotion !== 'normal' && customImages['normal']) {
-                customUrl = customImages['normal'];
-            }
-
-            const defaultChar = document.getElementById('default-text-character');
-
-            if (customUrl) {
-                // カスタム画像が設定されている場合はCanvasで表示
-                defaultChar.style.display = 'none';
-                customCharacterCanvas.style.display = 'block';
-                drawPixelatedImage(customUrl, false);
-            } else {
-                // デフォルトはユーザー指定のHTMLテキストアートを表示
-                customCharacterCanvas.style.display = 'none';
-                defaultChar.style.display = 'flex';
-                defaultChar.innerHTML = DEFAULT_TEXT_ART;
-                setTalkingAnimation(isTalking);
-            }
-        }
+        setupImagePreview('file-normal', 'preview-normal');
+        setupImagePreview('file-joy', 'preview-joy');
+        setupImagePreview('file-angry', 'preview-angry');
+        setupImagePreview('file-sad', 'preview-sad');
 
         window.addEventListener('load', () => {
             updateCharacterImage('normal');
