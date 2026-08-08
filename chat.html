@@ -239,7 +239,7 @@
 
     <script>
         // ご指定の画像をデフォルトとして設定
-        const DEFAULT_IMAGE_URL = './lyco_base.png';
+        const DEFAULT_IMAGE_URL = 'file_0000000053c082069a2cfe8440c900a1_3.png';
         const FALLBACK_IMAGE_URL = 'https://placehold.co/400x600/fce4ec/f06292?text=Error';
         
         const userInput = document.getElementById('user-input');
@@ -283,6 +283,7 @@
 - 敬語は使わず、フレンドリーなタメ口で話すこと。
 - 語尾に「だよ！」「ね！」「〜かな？」などをつけること。
 - 絵文字を適度に使用すること。
+- 悩み事がないように見えて実は人の気持ちを考えられないことが悩みであることを時折見せること。
 - 回答は吹き出しに収まるように、短く簡潔に（最大でも50文字程度）すること。
 - あなたの感情を推測し、"normal", "joy", "angry", "sad" のいずれかで出力してください。`,
 
@@ -292,6 +293,7 @@
 - 丁寧語または静かなタメ口で話し、感情をあまり表に出さないこと。
 - 語尾は「〜ね」「〜かしら」「〜だわ」などをベースにすること。
 - 絵文字は控えめにすること。
+- 実際は人付き合いが苦手なだけで、会話の流れによってはその一面を見せること。
 - 回答は吹き出しに収まるように、短く簡潔に（最大でも50文字程度）すること。
 - あなたの感情を推測し、"normal", "joy", "angry", "sad" のいずれかで出力してください。`,
 
@@ -300,7 +302,7 @@
 - ユーザーを「おじさん」「アンタ」などと呼び、挑発的で生意気な口調で話すこと。
 - 「〜じゃん」「〜でしょ♡」「ざぁこ♡」などを語尾や文末に使うこと。
 - 煽るような絵文字（😏、♡、💢など）を使うこと。
-- 上記の性質は構ってほしくて虚勢を張っているだけで実際は臆病なので、ふとしたときにその一面を覗かせること。
+- 実は構ってほしい寂しがり屋なので、時折その一面を見せること。
 - 回答は吹き出しに収まるように、短く簡潔に（最大でも50文字程度）すること。
 - あなたの感情を推測し、"normal", "joy", "angry", "sad" のいずれかで出力してください。`,
 
@@ -495,13 +497,23 @@
             chatHistory.push({ role: "user", parts: [{ text: text }] });
 
             try {
-                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+                // 通信先を現在有効な最新のGemini 3.5 Flashモデルに変更
+                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+                
+                // 通信量を節約し制限にかかりにくくするため、直近10件(5往復分)の履歴のみを送信
+                let recentContext = chatHistory.slice(-10);
+                
+                // 【重要】Gemini APIは会話履歴の先頭が必ず「user」である必要があるため、ズレを補正
+                if (recentContext.length > 0 && recentContext[0].role === "model") {
+                    recentContext.shift();
+                }
+
                 const payload = {
-                    contents: chatHistory,
+                    contents: recentContext,
                     systemInstruction: {
                         parts: [{ text: PERSONAS[currentPersona] }]
                     },
-                    tools: [{ "google_search": {} }],
+                    // 不正なエラーの原因となる不要な設定(tools)を削除しました
                     generationConfig: {
                         responseMimeType: "application/json",
                         responseSchema: {
@@ -519,17 +531,41 @@
                     }
                 };
 
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                // 自動リトライ機能（429エラー時に最大2回、間隔を空けて再試行）
+                let response = null;
+                let retryCount = 0;
+                const maxRetries = 2;
 
-                if (!response.ok) {
+                while (retryCount <= maxRetries) {
+                    response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) break;
+
                     if (response.status === 429) {
-                        throw new Error("RATE_LIMIT");
+                        if (retryCount < maxRetries) {
+                            retryCount++;
+                            console.warn(`API制限到達: ${retryCount}回目の再試行を5秒後に実行します...`);
+                            // 5秒, 10秒 と待機時間を長めに確保して再試行
+                            await new Promise(resolve => setTimeout(resolve, 5000 * retryCount));
+                        } else {
+                            // 制限エラーの詳細な理由をGoogle側から取得して表示する
+                            let errorMessage = "APIの無料枠制限に達しました";
+                            try {
+                                const errorData = await response.json();
+                                if(errorData.error && errorData.error.message) {
+                                    errorMessage = errorData.error.message;
+                                }
+                            } catch(e) {}
+                            throw new Error(`RATE_LIMIT:${errorMessage}`);
+                        }
+                    } else {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP_ERROR:${response.status}:${errorText}`);
                     }
-                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const result = await response.json();
@@ -552,9 +588,19 @@
                 }
 
             } catch (error) {
-                console.error("API Error:", error);
-                if (error.message === "RATE_LIMIT") {
-                    typeText("ごめんね、ちょっとパンクしちゃったみたい💦\n少し時間をおいてからもう一度話しかけてね！");
+                console.error("API Error Details:", error.message);
+                
+                if (error.message.startsWith("RATE_LIMIT")) {
+                    const detail = error.message.split("RATE_LIMIT:")[1] || error.message;
+                    
+                    // 「limit: 0」つまり無料枠が元々ない場合のエラー判定
+                    if (detail.includes("limit: 0")) {
+                        typeText(`ごめんね！あなたのAPIキーだと私が上手くお話しできないみたい💦\n\n【システムより】\n無料枠が「0回」に制限されています。\nGoogle AI Studioでクレジットカードを登録し、「Billing（課金）」設定を有効にする必要があります。\n※設定しても無料枠の範囲内であれば課金はされません。`);
+                    } else {
+                        typeText(`ごめんね、ちょっとパンクしちゃったみたい💦\n\n【システムより】\nAPIの利用制限に達しました。\n数分待ってからもう一度試してね！\n(詳細: ${detail.substring(0, 50)}...)`);
+                    }
+                } else if (error.message.startsWith("HTTP_ERROR")) {
+                    typeText(`通信エラーが発生したみたい……。\nAPIキーが間違っていないか、設定を確認してみてね！`);
                 } else {
                     typeText("エラーが発生しちゃったみたい……。ネットワークやAPIキーを確認してみてね。");
                 }
