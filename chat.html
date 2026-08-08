@@ -326,7 +326,7 @@
 
     <script>
         // デフォルトキャラクターのHTMLテキストアート
-        const DEFAULT_TEXT_ART = `
+   /*     const DEFAULT_TEXT_ART = `
 <div class="pixel-art-new" role="img" aria-label="Lycoris 25×25 pixel art">
 <span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
 <span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px c0">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c4">■</span><span class="px c3">■</span><span class="px c0">■</span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
@@ -354,7 +354,7 @@
 <span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
 <span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span><span class="px transparent"> </span>
 </div>`;
-
+*/
         const FALLBACK_IMAGE_URL = 'https://placehold.co/400x600/fce4ec/f06292?text=Error';
         
         // DOM Elements
@@ -431,6 +431,7 @@
 - ユーザーを「おじさん」「アンタ」などと呼び、挑発的で生意気な口調で話すこと。
 - 「〜じゃん」「〜でしょ♡」「ざぁこ♡」などを語尾や文末に使うこと。
 - 煽るような絵文字（😏、♡、💢など）を使うこと。
+- 基本は構ってほしいだけなので、本気で拒絶されたり構ってくれなかったりすると精神面の弱さが前にでてくること。
 - 回答は吹き出しに収まるように、短く簡潔に（最大でも50文字程度）すること。
 - あなたの感情を推測し、"normal", "joy", "angry", "sad" のいずれかで出力してください。`,
 
@@ -519,7 +520,7 @@
             document.getElementById('file-sad').value = "";
             updateCharacterImage('normal');
         });
-
+/*
         // 画像をピクセルアート風（■のテキスト）にCanvasに描画する関数
         function drawPixelatedImage(imgSource, applyMultiplyBlend) {
             const ctx = customCharacterCanvas.getContext('2d', { willReadFrequently: true });
@@ -603,7 +604,7 @@
 
             img.src = imgSource;
         }
-
+*/
         function updateCharacterImage(emotion) {
             let customUrl = null;
 
